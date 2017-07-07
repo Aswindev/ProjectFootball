@@ -190,10 +190,8 @@ public class SignInFragment extends Fragment {
 
 
 
-                getActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.SignIn_fragment_container, new OTP_Fragment())
-                        .commit();
+                Intent k = new Intent(getActivity(), OtpActivity.class);
+                startActivity(k);
 
 
 
