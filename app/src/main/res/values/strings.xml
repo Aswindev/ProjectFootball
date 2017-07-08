@@ -3,4 +3,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello">Hello</string>
+    <string name="SignUpDesc">First time user?\n Kindly Sign Up using your Google account</string>
+    <string name="SignInDesc">Existing User?\n Kindly verify using your google account</string>
 </resources>

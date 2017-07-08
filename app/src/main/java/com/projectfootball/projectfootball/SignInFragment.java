@@ -32,6 +32,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import static com.projectfootball.projectfootball.R.string.SignUpDesc;
+import static com.projectfootball.projectfootball.R.string.hello;
 
 
 public class SignInFragment extends Fragment {
@@ -40,14 +42,13 @@ public class SignInFragment extends Fragment {
 
 
 
-    private static final int RC_SIGN_IN = 1;
+    private static final int RC_SIGN_IN = 1,RC_SIGN_UP=2;
     GoogleApiClient mGoogleApiClient;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
-    private Button signOutButton;
-    private SignInButton signInButton;
-    TextView nameTextView, emailTextView;
+    private Button signOutButton, signInButton, signUpButton;
+    TextView nameTextView, emailTextView, signIndescTextVew;
 
 
 
@@ -64,9 +65,11 @@ public class SignInFragment extends Fragment {
 
     private void initViews(View view){
 
-        signInButton = (SignInButton) view.findViewById(R.id.sign_in_button);
+        signUpButton = (Button) view.findViewById(R.id.sign_up_button);
+        signInButton = (Button) view.findViewById(R.id.sign_in_button);
         signOutButton = (Button) view.findViewById(R.id.sign_out_button);
         nameTextView= (TextView) view.findViewById(R.id.name_text_view);
+        signIndescTextVew= (TextView) view.findViewById(R.id.sign_in_desc);
         emailTextView= (TextView) view.findViewById(R.id.email_text_view);
     }
 
@@ -119,18 +122,25 @@ public class SignInFragment extends Fragment {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
+                signUpButton.setVisibility(View.GONE);
                 signInButton.setVisibility(View.GONE);
+                signIndescTextVew.setVisibility(View.GONE);
                 signOutButton.setVisibility(View.VISIBLE);
                 if (user != null) {
                     // User is signed in
                     Log.d("SignIn", "onAuthStateChanged:signed_in:" + user.getUid());
                     if(user.getDisplayName() != null)
                         nameTextView.setText("HI " + user.getDisplayName().toString());
+                    nameTextView.setTextSize(30);
                     emailTextView.setText(user.getEmail().toString());
 
                 } else {
                     // User is signed out
+                    nameTextView.setText(hello);
+                    nameTextView.setTextSize(100);
+                    signUpButton.setVisibility(View.VISIBLE);
                     signInButton.setVisibility(View.VISIBLE);
+                    signIndescTextVew.setVisibility(View.VISIBLE);
                     signOutButton.setVisibility(View.GONE);
                     Log.d("SignOut", "onAuthStateChanged:signed_out");
                 }
@@ -144,6 +154,12 @@ public class SignInFragment extends Fragment {
                 signIn();
             }
         });
+        signUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                signUp();
+            }
+        });
         signOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -153,9 +169,12 @@ public class SignInFragment extends Fragment {
                             @Override
                             public void onResult(Status status) {
                                 signInButton.setVisibility(View.VISIBLE);
+                                signUpButton.setVisibility(View.VISIBLE);
+                                signIndescTextVew.setVisibility(View.VISIBLE);
                                 signOutButton.setVisibility(View.GONE);
-                                emailTextView.setText(" ".toString());
-                                nameTextView.setText(" ".toString());
+                                nameTextView.setText(hello);
+                                nameTextView.setTextSize(100);
+                                emailTextView.setText(SignUpDesc);
                             }
                         });
             }
@@ -166,6 +185,10 @@ public class SignInFragment extends Fragment {
     }
 
 
+    private void signUp() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_UP);
+    }
 
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
@@ -177,6 +200,22 @@ public class SignInFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_UP) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = result.getSignInAccount();
+                firebaseAuthWithGoogle(account);
+
+                Intent k = new Intent(getActivity(), OtpActivity.class);
+                k.putExtra("SignUp",true);
+                startActivity(k);
+
+            } else {
+                // Google Sign In failed, update UI appropriately
+                // ...
+            }
+        }
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             if (result.isSuccess()) {
@@ -184,19 +223,9 @@ public class SignInFragment extends Fragment {
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
 
-
-
-
-
-
-
                 Intent k = new Intent(getActivity(), OtpActivity.class);
+                k.putExtra("SignUp",false);
                 startActivity(k);
-
-
-
-
-
 
             } else {
                 // Google Sign In failed, update UI appropriately

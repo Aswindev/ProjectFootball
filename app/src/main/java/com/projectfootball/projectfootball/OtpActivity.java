@@ -3,6 +3,7 @@ package com.projectfootball.projectfootball;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,7 +32,7 @@ public class OtpActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     // [END declare_auth]
 
-    boolean mVerificationInProgress = false;
+    boolean mVerificationInProgress = false, SignUp=true;
     String mVerificationId;
     PhoneAuthProvider.ForceResendingToken mResendToken;
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
@@ -40,6 +41,9 @@ public class OtpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_otp);
+
+        SignUp = getIntent().getExtras().getBoolean("SignUp");
+//        Toast.makeText(OtpActivity.this,"SignUp : "+ SignUp,Toast.LENGTH_LONG).show();
 
         MobileNumber = (EditText) findViewById(R.id.mobileNumber);
         SubmitButton = (Button) findViewById(R.id.submit_Button);
@@ -55,12 +59,12 @@ public class OtpActivity extends AppCompatActivity {
 
             @Override
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
-                Toast.makeText(OtpActivity.this,"verifucation done"+ phoneAuthCredential,Toast.LENGTH_LONG).show();
+                Toast.makeText(OtpActivity.this,"verification done"+ phoneAuthCredential,Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onVerificationFailed(FirebaseException e) {
-                Toast.makeText(OtpActivity.this,"verifucation fail",Toast.LENGTH_LONG).show();
+                Toast.makeText(OtpActivity.this,"verification fail",Toast.LENGTH_LONG).show();
                 if (e instanceof FirebaseAuthInvalidCredentialsException) {
                     // Invalid request
                     // [START_EXCLUDE]
@@ -69,7 +73,7 @@ public class OtpActivity extends AppCompatActivity {
                 } else if (e instanceof FirebaseTooManyRequestsException) {
                     // The SMS quota for the project has been exceeded
                     // [START_EXCLUDE]
-                    Toast.makeText(OtpActivity.this,"quta over" ,Toast.LENGTH_LONG).show();
+                    Toast.makeText(OtpActivity.this,"Too many requests, please try later" ,Toast.LENGTH_LONG).show();
                     // [END_EXCLUDE]
                 }
             }
@@ -120,25 +124,59 @@ public class OtpActivity extends AppCompatActivity {
     }
 
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
-        mAuth.signInWithCredential(credential)
+        if (SignUp==true){
+
+        mAuth.getCurrentUser().linkWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            //Log.d(TAG, "signInWithCredential:success");
-                            Toast.makeText(OtpActivity.this,"Verification done",Toast.LENGTH_LONG).show();
+                            Log.d("LinkOTP", "linkWithCredential:success");
                             FirebaseUser user = task.getResult().getUser();
-                            // ...
+//                            updateUI(user);
                         } else {
-                            // Sign in failed, display a message and update the UI
-                            //Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-                                // The verification code entered was invalid
-                                Toast.makeText(OtpActivity.this,"Verification failed code invalid",Toast.LENGTH_LONG).show();
+                            Log.w("LinkOTPException", "FirebaseException", task.getException());
+                            if (task.getException() instanceof FirebaseException) {
+                                //mVerificationField.setError("Invalid code.");
+                                Toast.makeText(OtpActivity.this, "Authentication failed.",
+                                        Toast.LENGTH_SHORT).show();
+
+                            } else {
+                                Log.w("LinkOTP", "linkWithCredential:failure", task.getException());
+                                Toast.makeText(OtpActivity.this, "Authentication failed.",
+                                        Toast.LENGTH_SHORT).show();
+//                            updateUI(null);
                             }
                         }
+
+                        // ...
                     }
                 });
+
+        }
+        else if (SignUp==false){
+
+            mAuth.signInWithCredential(credential)
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                // Sign in success, update UI with the signed-in user's information
+                                //Log.d(TAG, "signInWithCredential:success");
+                                Toast.makeText(OtpActivity.this,"Verification done",Toast.LENGTH_LONG).show();
+                                FirebaseUser user = task.getResult().getUser();
+                                // ...
+                            } else {
+                                // Sign in failed, display a message and update the UI
+                                //Log.w(TAG, "signInWithCredential:failure", task.getException());
+                                if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                                    // The verification code entered was invalid
+                                    Toast.makeText(OtpActivity.this,"Verification failed code invalid",Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        }
+                    });
+        }
+
     }
 }
