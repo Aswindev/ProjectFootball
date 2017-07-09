@@ -75,19 +75,6 @@ public class SignInFragment extends Fragment {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -129,9 +116,11 @@ public class SignInFragment extends Fragment {
                 if (user != null) {
                     // User is signed in
                     Log.d("SignIn", "onAuthStateChanged:signed_in:" + user.getUid());
-                    if(user.getDisplayName() != null)
+                    if(user.getDisplayName() != null){
                         nameTextView.setText("HI " + user.getDisplayName().toString());
-                    nameTextView.setTextSize(30);
+                        nameTextView.setTextSize(30);
+                    }
+                    if (user.getEmail()!=null)
                     emailTextView.setText(user.getEmail().toString());
 
                 } else {

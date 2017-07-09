@@ -1,5 +1,7 @@
 package com.projectfootball.projectfootball;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -31,6 +33,7 @@ public class OtpActivity extends AppCompatActivity {
     // [START declare_auth]
     private FirebaseAuth mAuth;
     // [END declare_auth]
+    final Context context = this;
 
     boolean mVerificationInProgress = false, SignUp=true;
     String mVerificationId;
@@ -59,7 +62,13 @@ public class OtpActivity extends AppCompatActivity {
 
             @Override
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
-                Toast.makeText(OtpActivity.this,"verification done"+ phoneAuthCredential,Toast.LENGTH_LONG).show();
+//                Toast.makeText(OtpActivity.this,"verification done"+ phoneAuthCredential,Toast.LENGTH_LONG).show();
+                Toast.makeText(OtpActivity.this,"Inside onVerificationCompleted ",Toast.LENGTH_LONG).show();
+
+                Intent intent = new Intent(context, MainActivity.class);
+//                intent.putExtra("mVerificationId",mVerificationId);
+                startActivity(intent);
+
             }
 
             @Override
@@ -125,6 +134,7 @@ public class OtpActivity extends AppCompatActivity {
 
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
         if (SignUp==true){
+            Toast.makeText(OtpActivity.this,"SignUp : "+ SignUp,Toast.LENGTH_LONG).show();
 
         mAuth.getCurrentUser().linkWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -155,6 +165,7 @@ public class OtpActivity extends AppCompatActivity {
 
         }
         else if (SignUp==false){
+            Toast.makeText(OtpActivity.this,"SignUp : "+ SignUp,Toast.LENGTH_LONG).show();
 
             mAuth.signInWithCredential(credential)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
